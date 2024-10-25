@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Web Chat</title>    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
+    
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Real-Time Web Chat</h2>
+        </div>
+        <div class="chat-messages" id="messagesList"></div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Your name" required>
+            <input type="text" id="messageInput" placeholder="Type a message..." required>
+            <button id="sendButton">Send</button>
+        </div>
+    </div>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("http://127.0.0.1:5001/chatHub")
+            .build();
+
+        connection.on("ReceiveMessage", (user, message) => {
+            const msg = document.createElement("div");
+            msg.className = `chat-message other`;
+            msg.textContent = `${user}: ${message}`;
+            const user11 = document.getElementById("userInput").value;
+            if (user11 != user)
+             document.getElementById("messagesList").appendChild(msg);
+            msg.scrollIntoView({ behavior: "smooth" });
+        });
+
+        connection.start().catch(err => console.error(err));
+
+        document.getElementById("sendButton").addEventListener("click", async () => {
+            const user = document.getElementById("userInput").value;
+            const message = document.getElementById("messageInput").value;
+            await connection.invoke("SendMessage", user, message);
+            const msg = document.createElement("div");
+            msg.className = `chat-message user`;
+            msg.textContent = `${user}: ${message}`;
+            document.getElementById("messagesList").appendChild(msg);
+            document.getElementById("messageInput").value = '';
+            msg.scrollIntoView({ behavior: "smooth" });
+        });
+    </script>
+    
+</body>
+
+
+
